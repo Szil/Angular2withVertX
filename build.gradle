@@ -1,0 +1,81 @@
+group 'com.github.szil'
+version '1.0-SNAPSHOT'
+
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.0.1"
+        classpath "com.moowork.gradle:gradle-node-plugin:0.13"
+        classpath "com.moowork.gradle:gradle-gulp-plugin:0.13"
+        classpath "com.github.jengelman.gradle.plugins:shadow:1.2.3"
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'kotlin'
+apply plugin: 'com.moowork.node'
+apply plugin: 'com.moowork.gulp'
+apply plugin: 'application'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+sourceCompatibility = 1.8
+
+mainClassName = 'Server'
+
+node {
+    // Version of node to use.
+    version = '6.2.2'
+
+    // Version of npm to use.
+    npmVersion = '3.10.3'
+
+    // Base URL for fetching node distributions (change if you have a mirror).
+    distBaseUrl = 'https://nodejs.org/dist'
+
+    download = true
+
+    // Set the work directory for unpacking node
+    workDir = file("${project.buildDir}/nodejs")
+
+    // Set the work directory where node_modules should be located
+    nodeModulesDir = file("${project.projectDir}/src/angular")
+}
+
+shadowJar {
+    classifier = 'fat'
+    mergeServiceFiles {
+        include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib:1.0.1"
+    compile "io.vertx:vertx-core:$vertxVersion"
+    compile "io.vertx:vertx-web:$vertxVersion"
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+}
+
+// run npm install
+gulp_default.dependsOn(npmInstall)
+// run gulp install
+gulp_default.dependsOn(installGulp)
+
+task startNpm(type: NpmTask) {
+    args = ['start']
+}
+
+task compileTsc(type: NpmTask) {
+    args = ['run', 'tsc']
+}
+
+runShadow.dependsOn(compileTsc)
