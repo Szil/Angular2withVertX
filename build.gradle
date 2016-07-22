@@ -79,3 +79,4 @@ task compileTsc(type: NpmTask) {
 }
 
 runShadow.dependsOn(compileTsc)
+installShadowApp.dependsOn(compileTsc)
